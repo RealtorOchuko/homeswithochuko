@@ -1,0 +1,34 @@
+# Blog editor settings (Decap CMS). Open the editor at https://homeswithochuko.com/admin
+backend:
+  name: github
+  repo: YOUR-GITHUB-USERNAME/homeswithochuko   # <-- change to your GitHub username / repo name
+  branch: main
+
+site_url: https://homeswithochuko.com
+display_url: https://homeswithochuko.com
+logo_url: https://homeswithochuko.com/images/ochuko-hero.jpg
+
+media_folder: images/uploads
+public_folder: /images/uploads
+
+collections:
+  - name: blog
+    label: Blog posts
+    label_singular: Blog post
+    description: Posts appear at homeswithochuko.com/blog about 1 minute after you click Publish.
+    folder: content/blog
+    create: true
+    slug: "{{slug}}"
+    preview_path: "blog/{{slug}}.html"
+    sortable_fields: [date, title]
+    summary: "{{title}} ({{date}})"
+    fields:
+      - {label: Title, name: title, widget: string}
+      - {label: Publish date, name: date, widget: datetime, format: "YYYY-MM-DD", date_format: "MMM D, YYYY", time_format: false, hint: "Future dates stay hidden until that day's next publish."}
+      - {label: Summary, name: description, widget: text, hint: "1–2 sentences. Shows on the blog page, in Google results and on social shares."}
+      - {label: Category, name: category, widget: select, default: Selling, options: [Market Update, Selling, Buying, Investing, Relocation, Neighborhoods, Homeowner Tips]}
+      - {label: Area, name: area, widget: select, required: false, options: [Bay Area, San Francisco, Peninsula, Oakland, Fremont, Newark, San Jose]}
+      - {label: Cover image, name: image, widget: image, required: false, hint: "Landscape photo, at least 1600px wide."}
+      - {label: Button at the end, name: cta, widget: select, default: Home valuation, options: [Home valuation, Book a call, Search homes]}
+      - {label: Draft (hide from site), name: draft, widget: boolean, default: false}
+      - {label: Post, name: body, widget: markdown}
