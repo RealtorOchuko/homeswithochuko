@@ -17,6 +17,41 @@ const ROOT = __dirname;
 const OUT = path.join(ROOT, "dist");
 const POSTS_DIR = path.join(ROOT, "content", "blog");
 const SITE = "https://homeswithochuko.com";
+const CMS_CONFIG = `# Blog editor settings (Decap CMS). Open the editor at https://homeswithochuko.com/admin
+backend:
+  name: github
+  repo: RealtorOchuko/homeswithochuko
+  branch: main
+
+site_url: https://homeswithochuko.com
+display_url: https://homeswithochuko.com
+logo_url: https://homeswithochuko.com/images/ochuko-hero.jpg
+
+media_folder: images/uploads
+public_folder: /images/uploads
+
+collections:
+  - name: blog
+    label: Blog posts
+    label_singular: Blog post
+    description: Posts appear at homeswithochuko.com/blog about 1 minute after you click Publish.
+    folder: content/blog
+    create: true
+    slug: "{{slug}}"
+    preview_path: "blog/{{slug}}.html"
+    sortable_fields: [date, title]
+    summary: "{{title}} ({{date}})"
+    fields:
+      - {label: Title, name: title, widget: string}
+      - {label: Publish date, name: date, widget: datetime, format: "YYYY-MM-DD", date_format: "MMM D, YYYY", time_format: false, hint: "Future dates stay hidden until that day's next publish."}
+      - {label: Summary, name: description, widget: text, hint: "1–2 sentences. Shows on the blog page, in Google results and on social shares."}
+      - {label: Category, name: category, widget: select, default: Selling, options: [Market Update, Selling, Buying, Investing, Relocation, Neighborhoods, Homeowner Tips]}
+      - {label: Area, name: area, widget: select, required: false, options: [Bay Area, San Francisco, Peninsula, Oakland, Fremont, Newark, San Jose]}
+      - {label: Cover image, name: image, widget: image, required: false, hint: "Landscape photo, at least 1600px wide."}
+      - {label: Button at the end, name: cta, widget: select, default: Home valuation, options: [Home valuation, Book a call, Search homes]}
+      - {label: Draft (hide from site), name: draft, widget: boolean, default: false}
+      - {label: Post, name: body, widget: markdown}
+`;
 const SKIP = new Set(["dist", "node_modules", "content", ".git", ".github", "build.js", "package.json", "package-lock.json", "netlify.toml", "README.md", ".gitignore"]);
 
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -27,18 +62,39 @@ const slugify = s => String(s).toLowerCase().replace(/['’]/g, "").replace(/[^a
 const readMins = txt => Math.max(1, Math.round(txt.split(/\s+/).length / 220));
 
 // ---------- 1. fresh copy of the static site ----------
+// Works whether the files were uploaded with their folders (admin/, images/, content/blog/)
+// or all together in one flat list.
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
+const isStray = f => /^download( \(\d+\))?$/i.test(f) || /^index \(\d+\)\.html$/i.test(f) || f === "config.yml" || /\.md$/i.test(f);
 for (const f of fs.readdirSync(ROOT)) {
-  if (SKIP.has(f) || f.startsWith(".")) continue;
-  fs.cpSync(path.join(ROOT, f), path.join(OUT, f), { recursive: true });
+  if (SKIP.has(f) || f.startsWith(".") || isStray(f)) continue;
+  const src = path.join(ROOT, f);
+  // photos uploaded loose at the top level go in /images, where the pages expect them
+  const dest = /^ochuko-(hero|about)\.jpe?g$/i.test(f) ? path.join(OUT, "images", f) : path.join(OUT, f);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.cpSync(src, dest, { recursive: true });
 }
+// The real homepage is the index file with the hero section (guards against a mix-up between duplicate index files)
+const homeCandidates = fs.readdirSync(ROOT).filter(f => /^index( \(\d+\))?\.html$/i.test(f)).map(f => path.join(ROOT, f));
+const homeSrc = homeCandidates.find(f => fs.readFileSync(f, "utf8").includes('class="hero"'));
+if (!homeSrc) throw new Error("Could not find the homepage (index.html with the hero section)");
+fs.copyFileSync(homeSrc, path.join(OUT, "index.html"));
+// Blog editor: always generated here so it works even if the admin folder was not uploaded
+fs.mkdirSync(path.join(OUT, "admin"), { recursive: true });
+fs.writeFileSync(path.join(OUT, "admin", "index.html"), `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Blog editor | Ochuko Ekuke</title></head>
+<body><script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script><script>CMS.registerPreviewStyle("/styles.css");</script></body></html>`);
+fs.writeFileSync(path.join(OUT, "admin", "config.yml"), CMS_CONFIG);
 
 // ---------- 2. read posts ----------
-const posts = (fs.existsSync(POSTS_DIR) ? fs.readdirSync(POSTS_DIR) : [])
-  .filter(f => f.endsWith(".md"))
-  .map(f => {
-    const { data, content } = matter(fs.readFileSync(path.join(POSTS_DIR, f), "utf8"));
+const postFiles = (fs.existsSync(POSTS_DIR) ? fs.readdirSync(POSTS_DIR).filter(f => f.endsWith(".md")).map(f => path.join(POSTS_DIR, f)) : [])
+  .concat(fs.readdirSync(ROOT).filter(f => f.endsWith(".md") && f.toLowerCase() !== "readme.md").map(f => path.join(ROOT, f)))
+  .filter((f, i, a) => a.findIndex(x => path.basename(x) === path.basename(f)) === i);
+const posts = postFiles
+  .map(fp => {
+    const f = path.basename(fp);
+    const { data, content } = matter(fs.readFileSync(fp, "utf8"));
     const date = toDate(data.date);
     return {
       slug: slugify(f.replace(/\.md$/, "")),
@@ -56,7 +112,7 @@ const posts = (fs.existsSync(POSTS_DIR) ? fs.readdirSync(POSTS_DIR) : [])
   .sort((a, b) => b.date - a.date);
 
 // ---------- 3. shared page chrome (absolute paths so it works in /blog/) ----------
-const pixel = (() => { const m = fs.readFileSync(path.join(ROOT, "index.html"), "utf8").match(/<!-- Meta Pixel Code -->[\s\S]*?<!-- End Meta Pixel Code -->/); return m ? m[0] : ""; })();
+const pixel = (() => { const m = fs.readFileSync(path.join(OUT, "index.html"), "utf8").match(/<!-- Meta Pixel Code -->[\s\S]*?<!-- End Meta Pixel Code -->/); return m ? m[0] : ""; })();
 const head = ({ title, description, url, image, type = "website", jsonld = "" }) => `<!doctype html>
 <html lang="en">
 <head>
@@ -97,7 +153,7 @@ const header = `<body>
 </div></header>
 <main id="top">`;
 
-const footer = fs.readFileSync(path.join(ROOT, "home-value.html"), "utf8")
+const footer = fs.readFileSync(path.join(OUT, "home-value.html"), "utf8")
   .match(/<footer>[\s\S]*<\/footer>/)[0]
   .replace(/href="(?!https?:|#|\/|mailto:|tel:|sms:)([^"]+)"/g, 'href="/$1"');
 const tail = `</main>
