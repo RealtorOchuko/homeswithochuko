@@ -144,6 +144,7 @@ const header = `<body>
   <nav aria-label="Main"><button class="burger" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
     <ul>
       <li><a href="/#search">Search Homes</a></li>
+      <li><a href="/sell.html">Sell</a></li>
       <li><a href="/home-value.html">Home Value</a></li>
       <li><a href="/#communities">Communities</a></li>
       <li><a href="/blog/" aria-current="page">Blog</a></li>
