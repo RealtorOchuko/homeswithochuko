@@ -129,8 +129,9 @@
           <div class="done">
             <div class="mark">✓</div>
             <h3>Thank you, <span id="sFirst">I've got it</span>.</h3>
-            <p class="hint" style="margin:10px auto 0;max-width:420px">I'll review <strong id="sAddrEcho">your home</strong> and reach out within 24 hours to set up a short walkthrough. Want to talk sooner?</p>
-            <div class="btns" style="justify-content:center;margin-top:24px"><a href="#" class="btn btn-dark" data-cal>Book a 30-minute call</a><a href="#" class="btn btn-line" data-sms>Text me</a></div>
+            <p class="hint" style="margin:10px auto 0;max-width:420px">I'll review <strong id="sAddrEcho">your home</strong> and reach out within 24 hours to set up a short walkthrough. In the meantime, here's my free seller's guide.</p>
+            <div class="btns" style="justify-content:center;margin-top:24px"><a class="btn btn-dark" href="/preparing-to-sell-bay-area-sellers-guide.pdf" target="_blank" rel="noopener" download>Download the seller's guide</a><a href="#" class="btn btn-line" data-cal>Book a 30-minute call</a></div>
+            <p class="hint" style="margin-top:14px">Want to talk sooner? <a href="#" data-sms style="text-decoration:underline">Text me</a> anytime.</p>
           </div>
         </div>
       </form>
@@ -240,7 +241,7 @@
             <div class="mark">✓</div>
             <h3>Here's your guide, <span id="gFirst">thank you</span>.</h3>
             <p class="hint" style="margin:10px auto 0;max-width:420px">If it didn't open, use the button below. Questions while you read? Text me anytime.</p>
-            <div class="btns" style="justify-content:center;margin-top:24px"><a class="btn btn-dark" href="/guides/preparing-to-sell-bay-area-sellers-guide.pdf" target="_blank" rel="noopener" download>Download the PDF</a><a href="#plan" class="btn btn-line">Get my Sell-Smart plan</a></div>
+            <div class="btns" style="justify-content:center;margin-top:24px"><a class="btn btn-dark" href="/preparing-to-sell-bay-area-sellers-guide.pdf" target="_blank" rel="noopener" download>Download the PDF</a><a href="#plan" class="btn btn-line">Get my Sell-Smart plan</a></div>
           </div>
         </div>
       </form>
@@ -329,7 +330,7 @@
 <script>
 /* Seller guide form: sends the lead to Formspree, then opens the PDF */
 (function(){
-  const $=s=>document.querySelector(s), PDF="/guides/preparing-to-sell-bay-area-sellers-guide.pdf";
+  const $=s=>document.querySelector(s), PDF="/preparing-to-sell-bay-area-sellers-guide.pdf";
   const form=$("#guideForm"), btn=$("#gSend"), err=$("#gErr");
   form.addEventListener("submit",async e=>{
     e.preventDefault(); err.textContent="";

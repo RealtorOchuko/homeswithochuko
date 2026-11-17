@@ -102,7 +102,7 @@ const COMMUNITIES = [
     err.textContent="";
   }
   // Guides that are ready to download right after the form is sent
-  const GUIDE_FILES={"Preparing to Sell":"/guides/preparing-to-sell-bay-area-sellers-guide.pdf"};
+  const GUIDE_FILES={"Preparing to Sell":"/preparing-to-sell-bay-area-sellers-guide.pdf"};
   function guideLink(){
     const f=GUIDE_FILES[data.guide], d=$(".fstep[data-step='4'] .done"); if(!f||!d||d.querySelector(".dl")) return;
     d.insertAdjacentHTML("beforeend",'<p class="dl" style="margin-top:18px"><a class="btn btn-dark" href="'+f+'" target="_blank" rel="noopener" download>Download your guide (PDF)</a></p>');
