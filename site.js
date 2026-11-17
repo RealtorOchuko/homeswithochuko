@@ -101,6 +101,12 @@ const COMMUNITIES = [
     $("#fnav").style.display=n===4?"none":"flex";
     err.textContent="";
   }
+  // Guides that are ready to download right after the form is sent
+  const GUIDE_FILES={"Preparing to Sell":"/guides/preparing-to-sell-bay-area-sellers-guide.pdf"};
+  function guideLink(){
+    const f=GUIDE_FILES[data.guide], d=$(".fstep[data-step='4'] .done"); if(!f||!d||d.querySelector(".dl")) return;
+    d.insertAdjacentHTML("beforeend",'<p class="dl" style="margin-top:18px"><a class="btn btn-dark" href="'+f+'" target="_blank" rel="noopener" download>Download your guide (PDF)</a></p>');
+  }
   function pick(v){
     data.intent=v; $$(".opt").forEach(o=>o.classList.toggle("on",o.dataset.v===v));
   }
@@ -125,14 +131,14 @@ const COMMUNITIES = [
       next.disabled=true; next.textContent="Sending…";
       try{
         const r=await fetch(C.formEndpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
-        if(!r.ok) throw 0; go(4);
+        if(!r.ok) throw 0; go(4); guideLink();
         if(window.fbq) fbq("track","Lead",{content_name:data.intent||"Contact"});
       }catch(e){err.textContent="Something went wrong. Please text or email me directly."}
       next.disabled=false; if(step===3) next.textContent="Send";
     }else{
       const body=Object.entries(payload).filter(([,v])=>v).map(([k,v])=>k+": "+v).join("\n");
       location.href="mailto:"+C.email+"?subject="+encodeURIComponent("Website inquiry: "+(data.intent||"General"))+"&body="+encodeURIComponent(body);
-      go(4);
+      go(4); guideLink();
     }
   });
 

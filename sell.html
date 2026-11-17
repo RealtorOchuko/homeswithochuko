@@ -97,6 +97,7 @@
       <span class="eyebrow">The Sell-Smart Listing Package</span>
       <h1>Sell your Bay Area home <em>without</em> the risk.</h1>
       <p class="lede">Inspection, staging, pro photos and video, a Zillow Showcase listing and paid marketing, all handled for you, from SF condos to San Jose single-family homes.</p>
+      <p style="margin-top:14px;font-size:14px"><a href="#guide" style="text-decoration:underline">Not ready yet? Get the free seller’s guide →</a></p>
       <p class="promise">Your home prepped, inspected and marketed like a luxury listing, and you can walk away if I don't earn your trust.</p>
       <div class="sell-photo"><img src="/images/uploads/bay-area-street-cover-1600x900.jpg" alt="Bay Area residential street after the rain" loading="eager"></div>
     </div>
@@ -207,8 +208,49 @@
   </div>
 </section>
 
+<!-- SELLER GUIDE -->
+<section id="guide" class="about">
+  <div class="wrap val-grid">
+    <div class="reveal">
+      <span class="eyebrow">Free seller's guide</span>
+      <h2>Preparing to <em>Sell</em>: The Bay Area Seller's Guide.</h2>
+      <p class="lede">Timing, pricing, prep, disclosures, transfer taxes and Prop 19, in the order you'll face them. Seven pages you can read in 15 minutes.</p>
+      <ul class="val-pts">
+        <li><strong>A 4-stage selling timeline</strong><span>From your first call to closing, and when to start prep.</span></li>
+        <li><strong>Transfer taxes by city</strong><span>What Oakland, San Francisco and San Jose charge on a $1.2M sale.</span></li>
+        <li><strong>Taxes and Prop 19</strong><span>The home sale exclusion and how 55+ owners can keep their tax base.</span></li>
+      </ul>
+    </div>
+    <div class="formbox reveal">
+      <form id="guideForm" novalidate>
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
+        <div class="fstep on" data-step="1">
+          <h3>Get the free guide</h3>
+          <p class="hint">Enter your name and email, and the PDF opens right away.</p>
+          <div class="fields">
+            <div class="full"><label class="f" for="gName">Name *</label><input id="gName" autocomplete="name" required></div>
+            <div class="full"><label class="f" for="gEmail">Email *</label><input id="gEmail" type="email" autocomplete="email" required></div>
+            <label class="consent full"><input type="checkbox" id="gConsent" value="yes"><span>I agree to be contacted by Ochuko Ekuke of Mosaik Real Estate by email, phone or text about selling my home. Reply STOP to opt out. See the <a href="privacy.html" style="text-decoration:underline">privacy policy</a>.</span></label>
+          </div>
+          <div class="err" id="gErr" role="alert"></div>
+          <div class="fnav" style="display:flex;justify-content:flex-end"><button type="submit" class="btn btn-dark" id="gSend">Get the guide</button></div>
+        </div>
+        <div class="fstep" data-step="2">
+          <div class="done">
+            <div class="mark">✓</div>
+            <h3>Here's your guide, <span id="gFirst">thank you</span>.</h3>
+            <p class="hint" style="margin:10px auto 0;max-width:420px">If it didn't open, use the button below. Questions while you read? Text me anytime.</p>
+            <div class="btns" style="justify-content:center;margin-top:24px"><a class="btn btn-dark" href="/guides/preparing-to-sell-bay-area-sellers-guide.pdf" target="_blank" rel="noopener" download>Download the PDF</a><a href="#plan" class="btn btn-line">Get my Sell-Smart plan</a></div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+
 <!-- FAQ -->
-<section id="faq" class="about">
+<section id="faq">
   <div class="wrap faq-grid">
     <div class="reveal"><span class="eyebrow">Seller FAQ</span><h2>Good <em>questions</em>.</h2><p class="lede">Anything else? Text me at (510) 552-9481.</p></div>
     <div class="reveal">
@@ -284,5 +326,28 @@
   });
 })();
 </script>
+<script>
+/* Seller guide form: sends the lead to Formspree, then opens the PDF */
+(function(){
+  const $=s=>document.querySelector(s), PDF="/guides/preparing-to-sell-bay-area-sellers-guide.pdf";
+  const form=$("#guideForm"), btn=$("#gSend"), err=$("#gErr");
+  form.addEventListener("submit",async e=>{
+    e.preventDefault(); err.textContent="";
+    const name=$("#gName").value.trim(), email=$("#gEmail").value.trim();
+    if(!name||!/^\S+@\S+\.\S+$/.test(email)){err.textContent="Please add your name and a valid email.";return}
+    if(!$("#gConsent").checked){err.textContent="Please check the box to get the guide.";return}
+    const payload={_subject:"Seller guide download: "+name, intent:"Guide", guide:"Preparing to Sell", name, email, consent:"yes", source:location.href, _gotcha:form.querySelector("[name=_gotcha]").value};
+    const done=()=>{ $("#gFirst").textContent=name.split(" ")[0]; form.querySelectorAll(".fstep").forEach(s=>s.classList.toggle("on",s.dataset.step==="2"));
+      window.open(PDF,"_blank"); if(window.gtag) gtag("event","generate_lead",{form:"seller_guide"}); if(window.fbq) fbq("track","Lead",{content_name:"Seller Guide"}); };
+    const ep=(typeof SITE_CONFIG!=="undefined"&&SITE_CONFIG.formEndpoint)||"";
+    if(!ep) return done();
+    btn.disabled=true; btn.textContent="Sending…";
+    try{ const r=await fetch(ep,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)}); if(!r.ok) throw 0; done(); }
+    catch(e){ err.textContent="Something went wrong. Please text or email me directly."; }
+    btn.disabled=false; btn.textContent="Get the guide";
+  });
+})();
+</script>
+
 </body>
 </html>
